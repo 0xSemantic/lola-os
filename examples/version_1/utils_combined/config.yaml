@@ -1,0 +1,6 @@
+llm_model: "gemini/gemini-1.5-flash"
+evm_rpcs:
+  polygon: "https://polygon-rpc.com"  # Example chain
+  arbitrum: "https://arb1.arbitrum.io/rpc"
+gemini_api_key: "sk-placeholder-override"
+evm_private_key: "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"

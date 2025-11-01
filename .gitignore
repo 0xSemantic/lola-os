@@ -1,0 +1,14 @@
+documentations
+.venv
+.env
+__pycache__
+.ipynb_checkpoints
+.pytest_cache
+.vscode
+.DS_Store
+.idea
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.log

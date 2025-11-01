@@ -1,0 +1,5 @@
+llm_model: "gemini/gemini-1.5-flash"
+evm_rpcs:
+  sepolia: "https://sepolia.infura.io/v3/YOUR_INFURA_KEY"  # Replace with real
+gemini_api_key: "sk-placeholder"  # Override in .env
+evm_private_key: "0xplaceholder"  # Override in .env (testnet only!)

@@ -1,0 +1,7 @@
+flowchart TD
+    A[.env Secrets] --> B[YAML Defaults]
+    B --> C[os.environ Overrides]
+    C --> D[load_config: Validate SecretStr]
+    D --> E[Config Model]
+    E --> F[setup_logger: JSON Extras]
+    F --> G[Log: Masked + PID]

@@ -1,0 +1,12 @@
+{
+    "messages": [
+        {
+            "role": "user",
+            "content": "Hello, LOLA OS!"
+        }
+    ],
+    "tools_results": {
+        "example_tool": "demo_result"
+    },
+    "reflection": "Initial reflection"
+}
