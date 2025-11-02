@@ -34,4 +34,13 @@ Use: `from lola.core import BaseAgent, LOLAStateGraph`—config-driven limits/LL
 
 Use: `from lola.chains import Web3Connection, LOLAWallet`—config-driven chains.
 
-Next: Phase 5 tools use chains for onchain/web tools.
+## Tools: Base and Web/Onchain Plugins
+- **BaseTool**: ABC for execute/validate/bind (agent tools list).
+- **WebCrawlTool**: Async crawl with selectors/JSON/Markdown (Crawl4AI, config timeout).
+- **ContractCallTool**: EVM read call (via phase 4 contract, config ABI/address).
+- **TransactTool**: EVM TX send with sim/gas (via phase 4 wallet/utils, config chain).
+- **OnchainUtils**: gas_helper/simulate_tx (via phase 4).
+
+Use: `from lola.tools import BaseTool, WebCrawlTool`—bind to agent.tools for graph.
+
+Next: Phase 6 agents use tools in templates (e.g., ReAct loop).

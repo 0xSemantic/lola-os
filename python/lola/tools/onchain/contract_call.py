@@ -1,5 +1,5 @@
 # Standard imports
-from typing import Dict, Any, Optional, str
+from typing import Dict, Any, Optional
 
 # Third-party imports
 # None (uses phase 4 contract)
@@ -51,12 +51,28 @@ class ContractCallTool(BaseTool):
 
         Does Not: Estimate gas—read-only call.
         """
-        if not self.validate(address=address, abi=abi, function_name=function_name)["valid"]:
+        # Basic param sanity (fast-fail). BaseTool.validate remains authoritative
+        if not isinstance(address, str) or not address.startswith("0x"):
+            raise ValueError("Invalid params for contract call: address must be hex string starting with 0x.")
+        if not isinstance(function_name, str) or not function_name:
+            raise ValueError("Invalid params for contract call: function_name required.")
+
+        validated = self.validate(address=address, abi=abi, function_name=function_name)
+        if not validated or not validated.get("valid", False):
             raise ValueError("Invalid params for contract call.")
+
+        # Default chain via Web3Connection (reads config inside)
         conn = Web3Connection()  # Default chain
         contract = LOLAContract(address, abi, conn)
         result = contract.call(function_name, *args)
-        logger.info("Contract call executed", extra={"address": address[:10] + "...", "function": function_name, "result_type": type(result).__name__})
+        logger.info(
+            "Contract call executed",
+            extra={
+                "address": address[:10] + "...",
+                "function": function_name,
+                "result_type": type(result).__name__
+            }
+        )
         return result
 
 __all__ = ["ContractCallTool"]

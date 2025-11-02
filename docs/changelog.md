@@ -20,4 +20,9 @@
 - Tests: 8 pass, mocked web3 for unit, real structure.
 - Examples: 2 (standalone/combined).
 
-Next: Phase 5 tools.
+## v1.0.0-alpha.5 (Phase 5 - 2025-11-02)
+- Add tools: BaseTool (validate/bind), WebCrawlTool (async extract), ContractCallTool/TransactTool (read/write), onchain utils (gas/sim).
+- Tests: 8 pass, mocked crawl/broadcast, real structure.
+- Examples: 2 (standalone/combined).
+
+Next: Phase 6 agents.

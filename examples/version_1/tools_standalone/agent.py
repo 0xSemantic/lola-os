@@ -46,7 +46,7 @@ if __name__ == "__main__":
     logger.info("Combined crawl", extra={"title": crawl_result["metadata"]["title"]})
     print(f"Crawl: {crawl_result['content'][:100]}...")
     if config.evm_private_key:
-        call_result = call_tool.execute(address="0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238", abi='[{"name": "balanceOf", "inputs": [{"type": "address"}], "outputs": [{"type": "uint256"}]}]', function_name="balanceOf", "0xuser")
+        call_result = call_tool.execute(address="0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238", abi='[{"name": "balanceOf", "inputs": [{"type": "address"}], "outputs": [{"type": "uint256"}]}]', function_name="balanceOf", *["0xuser"])
         print(f"Contract call: {call_result}")
         tx_result = transact_tool.execute(to="0xdeadbeef", value=0, chain="sepolia")
         print(f"Transact: {tx_result['tx_hash']}")

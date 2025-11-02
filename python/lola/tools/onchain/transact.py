@@ -1,5 +1,5 @@
 # Standard imports
-from typing import Dict, Any, Optional, str
+from typing import Dict, Any, Optional
 
 # Third-party imports
 # None (uses phase 4 wallet/utils)
