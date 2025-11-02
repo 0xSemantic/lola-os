@@ -1,3 +1,4 @@
+# python/lola/core/graph.py
 # Standard imports
 import asyncio
 from typing import Dict, Any, Optional, Callable
@@ -51,7 +52,7 @@ class LOLAStateGraph(SupervisedStateGraph):
 
         Does Not: Add edges—use add_edge after.
         """
-        self.add_node(name, func)
+        super().add_node(name, func)
         logger.debug("Node added", extra={"name": name, "func_type": "async" if asyncio.iscoroutinefunction(func) else "sync"})
         return self
 
@@ -68,7 +69,7 @@ class LOLAStateGraph(SupervisedStateGraph):
 
         Does Not: Validate cycles—LangGraph checks on compile.
         """
-        self.add_edge(from_node, to_node)
+        super().add_edge(from_node, to_node)
         logger.debug("Edge added", extra={"from": from_node, "to": to_node})
         return self
 

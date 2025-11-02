@@ -1,94 +1,96 @@
+# python/lola/agents/conversational.py
 # Standard imports
-import typing as tp
+from typing import Dict, Any, Optional, List
 
 # Third-party imports
-# None
+import json
 
 # Local imports
+from lola.utils.logging import setup_logger
 from lola.core.state import State
-from lola.core.graph import StateGraph
 from lola.core.memory import ConversationMemory
-from lola.core.agent import BaseAgent
+from lola.libs.litellm.proxy import LLMProxy
+from lola.tools.base import BaseTool
+from lola.core.agent import BaseAgent  # Import from core (Phase 3), no duplication
 
 """
-File: Conversational agent template for context-aware interactions.
+File: Conversational agent template for LOLA OS with memory context.
 
-Purpose: Maintains conversation history for coherent responses.
-How: Uses ConversationMemory to seed State, processes via graph.
-Why: Enables context retention for dialogue in V1.
+Purpose: Implements conversational agent for multi-turn chat with tools, maintaining context via memory.
+How: Extends core BaseAgent with run: Memory summarize history → LLM respond with tool action if needed → update state/memory.
+Why: Supports chat-like agents in V1 (e.g., "What's Alice's balance? Transfer 1 ETH."), verifiable via memory/state.
 Full Path: lola-os/python/lola/agents/conversational.py
 """
 
+logger = setup_logger("lola.agents.conversational")
+
 class ConversationalAgent(BaseAgent):
-    """ConversationalAgent: Retains context for dialogue. Does NOT call real LLMs/tools."""
+    """ConversationalAgent: Memory-driven multi-turn agent. Does NOT use graph—linear with tools."""
 
-    def __init__(
-        self,
-        model: str = "mock-model",
-        tools: tp.List[tp.Any] = None,
-        graph: tp.Optional[StateGraph] = None,
-        memory: tp.Optional[ConversationMemory] = None
-    ):
+    def __init__(self, model: str = None, tools: List[BaseTool] = None):
         """
-        Initializes Conversational agent with memory.
+        Init ConversationalAgent with model/tools/memory.
 
         Args:
-            model: LLM model name (stubbed).
-            tools: List of tools (stubbed or real).
-            graph: StateGraph (defaults to conversational).
-            memory: ConversationMemory for context (defaults to new).
+            model: LLM model (default config).
+            tools: List of BaseTool for action.
 
-        Does Not: Connect to external APIs.
+        Does Not: Auto-bind—call bind_tools.
         """
-        super().__init__(model, tools, graph)
-        self.memory = memory or ConversationMemory()
-        # Inline: Build conversational graph if none provided
-        if not graph:
-            self.graph = self._build_conversational_graph()
+        super().__init__(model, tools)
+        self.memory = ConversationMemory(self.llm_proxy)
 
-    def _build_conversational_graph(self) -> StateGraph:
+    def run(self, query: str, history: Optional[List[Dict[str, str]]] = None) -> State:
         """
-        Builds the conversational workflow graph.
-
-        Returns:
-            StateGraph with context-aware response node.
-
-        Does Not: Execute the graph.
-        """
-        graph = StateGraph(State)
-
-        def respond(state: State) -> State:
-            # Inline: Combine memory and current query
-            context = "\n".join(msg["content"] for msg in self.memory.retrieve())
-            prompt = f"Context: {context}\nQuery: {state.messages[-1]['content']}"
-            response = self.call_llm(prompt)
-            state.messages.append({"role": "assistant", "content": response})
-            # Inline: Update memory with new query and response
-            self.memory.append(state.messages[-2])  # User query
-            self.memory.append({"role": "assistant", "content": response})
-            return state
-
-        graph.add_node("respond", respond)
-        graph.set_entry_point("respond")
-        graph.add_edge("respond", "__end__")
-        return graph
-
-    async def run(self, query: str) -> State:
-        """
-        Executes the conversational workflow.
+        Runs conversational turn: Summarize history → LLM respond/act → update state/memory.
 
         Args:
-            query: User input or query.
+            query: Current user query string.
+            history: Optional prior messages for memory.
 
         Returns:
-            Final State with response.
+            State with response/tool_result/summary.
 
-        Does Not: Use real LLMs/tools.
+        Does Not: Persist memory—use StateManager in caller.
         """
-        # Inline: Initialize state with query and memory
-        self.state = State(messages=self.memory.retrieve() + [{"role": "user", "content": query}])
-        # Inline: Run graph with supervision
-        final_state = await self.graph.execute(self.state)
-        return final_state
+        messages = history or []
+        messages.append({"role": "user", "content": query})
+        state = State(messages=messages)
+        # Memory context
+        summary = self.memory.summarize_history(state.messages)
+        context_prompt = f"History summary: {summary}\nQuery: {query}\nRespond or act with tools."
+        response = self.call_llm(context_prompt)
+        # Parse for tool action
+        action = self._parse_tool_action(response)
+        if action:
+            tool_name = action["tool"]
+            tool_input = action["input"]
+            tool = next((t for t in self.tools if t.name == tool_name), None)
+            if tool:
+                tool_result = tool.execute(**tool_input)
+                response += f"\nTool result: {tool_result}"
+                state.tool_results[tool_name] = tool_result
+        state.messages.append({"role": "assistant", "content": response})
+        state.tool_results["summary"] = self.memory.summarize_history(state.messages)
+        logger.info("Conversational turn", extra={"history_len": len(state.messages) - 1, "tools_used": len(state.tool_results) - 1})
+        return state
+
+    def _parse_tool_action(self, response: str) -> Optional[Dict[str, Any]]:
+        """
+        Parses LLM response for tool action (simple keyword; subclass for LLM parse).
+
+        Args:
+            response: LLM response string.
+
+        Returns:
+            Dict {"tool": str, "input": Dict} or None.
+
+        Does Not: Handle complex parse—basic for V1.
+        """
+        # Inline: Basic keyword parse; real: Use LLM for structured output
+        for tool in self.tools:
+            if tool.name.lower() in response.lower():
+                return {"tool": tool.name, "input": {"url": "default" if tool.name == "web_crawl" else {}}}
+        return None
 
 __all__ = ["ConversationalAgent"]

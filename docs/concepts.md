@@ -43,4 +43,13 @@ Use: `from lola.chains import Web3Connection, LOLAWallet`—config-driven chains
 
 Use: `from lola.tools import BaseTool, WebCrawlTool`—bind to agent.tools for graph.
 
-Next: Phase 6 agents use tools in templates (e.g., ReAct loop).
+
+## Agents: Templates and Extensions
+- **BaseAgent**: ABC for run/bind/call_llm (extend for templates).
+- **ReActAgent**: ReAct loop (reason-act with tools/LLM).
+- **PlanExecuteAgent**: Plan (LLM) + execute (graph/tools).
+- **ConversationalAgent**: Multi-turn with memory/tools (context history).
+
+Use: `from lola.agents import ReActAgent`—bind tools, run query for State.
+
+Next: Phase 7 CLI scaffolds/runs templates.

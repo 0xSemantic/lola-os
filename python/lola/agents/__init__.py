@@ -1,5 +1,4 @@
-# python/lola/agents/__init__.py
-# Local imports
+# agents/__init__.py remains the same
 from lola.core.agent import BaseAgent
 from .react import ReActAgent
 from .plan_execute import PlanExecuteAgent

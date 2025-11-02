@@ -25,4 +25,9 @@
 - Tests: 8 pass, mocked crawl/broadcast, real structure.
 - Examples: 2 (standalone/combined).
 
-Next: Phase 6 agents.
+## v1.0.0-alpha.6 (Phase 6 - 2025-11-02)
+- Add agents: BaseAgent extend, ReAct (loop), PlanExecute (plan/graph), Conversational (memory).
+- Tests: 8 pass, mocked LLM/tool, real structure.
+- Examples: 2 (standalone/combined).
+
+Next: Phase 7 CLI.

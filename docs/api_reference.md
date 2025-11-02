@@ -52,3 +52,18 @@ Docstrings: Inline Args/Returns.
 - `simulate_tx`: Dry-run via phase 4.
 
 Docstrings: Inline Args/Returns.
+
+
+## lola.agents.base
+- `BaseAgent`: init/bind_tools/run/call_llm (abstract run).
+
+## lola.agents.react
+- `ReActAgent`: run (reason-act loop with tools).
+
+## lola.agents.plan_execute
+- `PlanExecuteAgent`: run (LLM plan + graph execute).
+
+## lola.agents.conversational
+- `ConversationalAgent`: run (memory multi-turn with tools).
+
+Docstrings: Inline Args/Returns.

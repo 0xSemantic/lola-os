@@ -1,0 +1,4 @@
+llm_model: "gemini/gemini-1.5-flash"
+evm_rpcs:
+  sepolia: "https://sepolia.infura.io/v3/placeholder"
+evm_private_key: "0xplaceholder"

@@ -1,102 +1,118 @@
 # python/lola/agents/react.py
 # Standard imports
-import typing as tp
+import asyncio
+from typing import List, Dict, Any
+import json 
 
 # Third-party imports
-# None
+# None (uses phase 2 litellm)
 
 # Local imports
+from lola.utils.logging import setup_logger
 from lola.core.state import State
-from lola.core.graph import StateGraph
-from lola.core.agent import BaseAgent
+from lola.core.memory import ConversationMemory
+from lola.libs.litellm.proxy import LLMProxy
+from lola.tools.base import BaseTool
+from lola.core.agent import BaseAgent 
 
 """
-File: ReAct agent template for reasoning-action loops.
+File: ReAct agent template for LOLA OS with reasoning/action loop.
 
-Purpose: Implements a ReAct (Reason-Act) pattern for iterative problem-solving.
-How: Uses a StateGraph with nodes for reasoning (stubbed LLM), acting (stubbed tools), and reflection.
-Why: Enables complex task resolution with supervision in V1.
+Purpose: Implements ReAct (Reason-Act) pattern for agents, alternating LLM reasoning and tool action until resolution.
+How: Extends core BaseAgent with run loop: LLM reason → parse action → execute tool → observe → repeat; uses memory for context.
+Why: Enables dynamic tool use in V1 (e.g., web_crawl + onchain), with verifiable reasoning chain in state.
 Full Path: lola-os/python/lola/agents/react.py
 """
 
+logger = setup_logger("lola.agents.react")
+
 class ReActAgent(BaseAgent):
-    """ReActAgent: Executes iterative reason-act loops. Does NOT call real LLMs/tools."""
+    """ReActAgent: ReAct template with loop for reasoning/action. Does NOT limit turns—use graph for supervision."""
 
-    def __init__(
-        self,
-        model: str = "mock-model",
-        tools: tp.List[tp.Any] = None,
-        graph: tp.Optional[StateGraph] = None
-    ):
+    def __init__(self, model: str = None, tools: List[BaseTool] = None):
         """
-        Initializes ReAct agent with reasoning loop.
+        Init ReActAgent with model and tools.
 
         Args:
-            model: LLM model name (stubbed).
-            tools: List of tools (stubbed or real).
-            graph: StateGraph (defaults to ReAct-specific).
+            model: LLM model (default config).
+            tools: List of BaseTool for action.
 
-        Does Not: Connect to external APIs.
+        Does Not: Auto-bind—call bind_tools.
         """
-        super().__init__(model, tools, graph)
-        # Inline: Build ReAct graph if none provided
-        if not graph:
-            self.graph = self._build_react_graph()
-        self.max_iterations = 10  # Default to high for normal runs
+        super().__init__(model, tools)
+        self.memory = ConversationMemory(self.llm_proxy)
 
-    def _build_react_graph(self) -> StateGraph:
+    def run(self, query: str) -> State:
         """
-        Builds the ReAct workflow graph.
-
-        Returns:
-            StateGraph with reason-act-reflect nodes.
-
-        Does Not: Execute the graph (run-time only).
-        """
-        graph = StateGraph(State)
-
-        def reason(state: State) -> State:
-            prompt = f"Reason about: {state.messages[-1]['content']}"
-            state.messages.append({"role": "system", "content": self.call_llm(prompt)})
-            return state
-
-        def act(state: State) -> State:
-            # Inline: Simulate tool call if tools exist
-            if self.tools:
-                state.tools_results["mock_tool"] = "Mock tool executed"
-            state.messages.append({"role": "system", "content": "Action taken"})
-            return state
-
-        def should_continue(state: State) -> str:
-            # Inline: Stop after max iterations or if resolved
-            if len(state.messages) >= self.max_iterations * 2 + 1:  # Query + (reason + act) * max_iterations
-                state.reflection = "Max turns reached; halting execution to prevent loops."
-                return "__end__"
-            return "act"
-
-        graph.add_node("reason", reason)
-        graph.add_node("act", act)
-        graph.set_entry_point("reason")
-        graph.add_edge("reason", "act")
-        graph.add_conditional_edges("act", should_continue, {"act": "reason", "__end__": "__end__"})
-        return graph
-
-    async def run(self, query: str) -> State:
-        """
-        Executes the ReAct loop for a query.
+        Runs ReAct loop: Reason → Act → Observe until done.
 
         Args:
-            query: User input or task.
+            query: Initial user query.
 
         Returns:
-            Final State after loop.
+            Final State with messages (reasoning/actions) and tool_results.
 
-        Does Not: Use real LLMs/tools.
+        Does Not: Handle infinite loop—add max_turns in subclass.
         """
-        # Inline: Initialize state with query
-        self.state = State(messages=[{"role": "user", "content": query}])
-        # Inline: Run graph with supervision
-        final_state = await self.graph.execute(self.state)
-        return final_state
+        state = State(messages=[{"role": "user", "content": query}])
+        max_turns = 5  # Inline: Configurable limit
+        for turn in range(max_turns):
+            # Reason with LLM
+            reasoning_prompt = self._build_reason_prompt(state)
+            reasoning = self.call_llm(reasoning_prompt)
+            state.messages.append({"role": "assistant", "content": f"Reasoning: {reasoning}"})
+            # Parse action
+            action = self._parse_action(reasoning)
+            if action.get("action") == "finish":
+                state.messages.append({"role": "assistant", "content": f"Final answer: {action.get('output', '')}"})
+                break
+            # Execute tool
+            tool_name = action.get("tool")
+            tool_args = action.get("tool_input", {})
+            if tool_name not in [t.name for t in self.tools]:
+                state.tool_results[tool_name] = "Tool not found"
+                continue
+            tool = next(t for t in self.tools if t.name == tool_name)
+            tool_result = tool.execute(**tool_args)
+            state.tool_results[tool_name] = tool_result
+            state.messages.append({"role": "tool", "content": f"Observation: {tool_result}"})
+            logger.info("ReAct turn", extra={"turn": turn + 1, "action": tool_name, "result_type": type(tool_result).__name__})
+        return state
+
+    def _build_reason_prompt(self, state: State) -> str:
+        """Builds prompt for reasoning based on state/history."""
+        history = self.memory.summarize_history(state.messages)
+        tools_desc = "\n".join([f"{t.name}: {t.description}" for t in self.tools])
+        return f"""History: {history}
+Tools available:
+{tools_desc}
+Query: {state.messages[-1]['content']}
+Reason step-by-step, then output in this format:
+Thought: [your reasoning]
+Action: [tool name or 'finish' if done]
+Input: [JSON dict for tool input if Action is tool, or output if finish]"""
+
+    def _parse_action(self, reasoning: str) -> Dict[str, Any]:
+        """Parses LLM reasoning for action/tool_input or finish/output."""
+        lines = reasoning.split("\n")
+        action = {}
+        for line in lines:
+            if line.startswith("Thought:"):
+                action["thought"] = line.split(":", 1)[1].strip()
+            elif line.startswith("Action:"):
+                action["action"] = line.split(":", 1)[1].strip().lower()
+            elif line.startswith("Input:"):
+                input_str = line.split(":", 1)[1].strip()
+                if action["action"] == "finish":
+                    action["output"] = input_str
+                else:
+                    try:
+                        action["tool_input"] = json.loads(input_str)
+                    except json.JSONDecodeError:
+                        action["tool_input"] = {}
+        if "action" in action and action["action"] != "finish":
+            action["tool"] = action["action"]
+            action["action"] = "tool"
+        return action
 
 __all__ = ["ReActAgent"]
