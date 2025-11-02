@@ -1,110 +1,118 @@
 # Standard imports
 import json
-import typing as tp
-from pathlib import Path
+from typing import Dict, Any, Optional, List
 
 # Third-party imports
-# None
+from pydantic import ValidationError
 
 # Local imports
-from .state import State
+from lola.utils.logging import setup_logger
+from lola.core.state import State
+from lola.libs.litellm.proxy import LLMProxy
 
 """
-File: Manages state and memory for persistence and history.
+File: Memory manager for LOLA agent state persistence and conversation/entity extraction.
 
-Purpose: Handles loading/saving state and conversation/entity memory for agents.
-How: Uses JSON for persistence (file-based), append/retrieve for memory with basic handlers.
-Why: Retains context across turns in V1 without external databases, enabling reliable orchestration.
+Purpose: Provides JSON persistence for State and LLM-based handlers for conversation history/entity extraction.
+How: StateManager for load/save JSON, ConversationMemory for LLM extract/summarize using phase 2 proxy.
+Why: Enables multi-turn context in V1 agents, with verifiable persistence and sovereign LLM routing.
 Full Path: lola-os/python/lola/core/memory.py
 """
 
+logger = setup_logger("lola.core.memory")
+
 class StateManager:
-    """StateManager: Persists and loads State to/from files. Does NOT handle encryption."""
+    """StateManager: Simple JSON persistence for State. Does NOT extract entities—use ConversationMemory."""
 
     @staticmethod
-    def save(state: State, path: tp.Union[str, Path]) -> None:
+    def save(state: State, file_path: str) -> None:
         """
-        Saves State to JSON file.
+        Saves State to JSON file for persistence.
 
         Args:
-            state: State instance to save.
-            path: File path (str or Path).
+            state: State to save.
+            file_path: Path to JSON file (e.g., "session.json").
 
-        Does Not: Overwrite without check; assumes path is writable.
+        Does Not: Compress or encrypt—raw JSON; use external for security.
         """
-        path = Path(path)
-        # Inline: Use Pydantic V2 model_dump()
-        with path.open("w", encoding="utf-8") as f:
-            json.dump(state.model_dump(), f, indent=4, ensure_ascii=False)
+        with open(file_path, "w") as f:
+            f.write(state.to_json())
+        logger.debug("State saved", extra={"path": file_path, "messages_len": len(state.messages)})
 
     @staticmethod
-    def load(path: tp.Union[str, Path]) -> State:
+    def load(file_path: str) -> State:
         """
-        Loads State from JSON file.
+        Loads State from JSON file, validating on deserializ.
 
         Args:
-            path: File path (str or Path).
+            file_path: Path to JSON file.
 
         Returns:
-            Loaded State instance.
+            Validated State.
 
-        Does Not: Handle non-JSON files; raises on invalid data.
+        Does Not: Handle missing file—raises FileNotFoundError.
         """
-        path = Path(path)
-        with path.open("r", encoding="utf-8") as f:
-            data = json.load(f)
-        # Inline: Validate via Pydantic instantiation
-        return State(**data)
+        with open(file_path, "r") as f:
+            json_str = f.read()
+        try:
+            state = State.from_json(json_str)
+            logger.debug("State loaded", extra={"path": file_path, "messages_len": len(state.messages)})
+            return state
+        except (ValidationError, json.JSONDecodeError) as e:
+            logger.error("State load failed", extra={"path": file_path, "error": str(e)})
+            raise ValueError(f"Invalid state file: {e}") from e
 
 class ConversationMemory:
-    """ConversationMemory: Manages message history. Does NOT perform summarization or compression."""
+    """ConversationMemory: LLM-based handlers for history extraction/summarization. Does Not persist—use StateManager."""
 
-    def __init__(self):
-        self.history: tp.List[tp.Dict[str, str]] = []
-
-    def append(self, message: tp.Dict[str, str]) -> None:
+    def __init__(self, llm_proxy: Optional[LLMProxy] = None):
         """
-        Appends a message to history.
+        Initialize ConversationMemory with LLM proxy for extraction.
 
         Args:
-            message: Dict with 'role' and 'content' keys.
+            llm_proxy: LLMProxy for LLM calls (loads default if None).
 
-        Does Not: Validate message format; assume correct.
+        Does Not: Store history—stateless, pass messages each call.
         """
-        self.history.append(message)
+        self.llm_proxy = llm_proxy or LLMProxy()
+        logger.info("ConversationMemory init", extra={"model": self.llm_proxy.model})
 
-    def retrieve(self, last_n: int = 0) -> tp.List[tp.Dict[str, str]]:
+    def extract_entities(self, messages: List[Dict[str, str]]) -> Dict[str, Any]:
         """
-        Retrieves last N messages or all.
+        Extracts entities (names, dates, locations) from messages using LLM.
 
         Args:
-            last_n: Number of recent messages (0 for all).
+            messages: List of {'role': str, 'content': str}.
 
         Returns:
-            List of messages.
+            Dict with 'entities': list of extracted items.
 
-        Does Not: Filter by role or content; raw retrieval.
+        Does Not: Dedupe or categorize—raw LLM output as list.
         """
-        if last_n <= 0:
-            return self.history[:]
-        return self.history[-last_n:]
+        prompt = "Extract entities (names, dates, locations) from this conversation as a JSON list: " + "\n".join([f"{m['role']}: {m['content']}" for m in messages])
+        entities_str = self.llm_proxy.complete(prompt)
+        try:
+            entities = json.loads(entities_str)
+        except json.JSONDecodeError:
+            entities = [e.strip() for e in entities_str.split(",") if e.strip()]  # Fallback split
+        logger.debug("Entities extracted", extra={"count": len(entities)})
+        return {"entities": entities}
 
-class EntityMemory:
-    """EntityMemory: Placeholder for entity extraction from text. Does NOT integrate LLM in V1; stub only."""
-
-    def extract(self, text: str) -> tp.Dict[str, tp.List[str]]:
+    def summarize_history(self, messages: List[Dict[str, str]]) -> str:
         """
-        Stub for extracting entities from text.
+        Summarizes conversation history using LLM for context compression.
 
         Args:
-            text: Input text to process.
+            messages: List of messages.
 
         Returns:
-            Dict with 'entities' list (empty stub).
+            Concise summary string.
 
-        Does Not: Perform actual NLP; extend in future versions.
+        Does Not: Include full history—high-level only (max 200 tokens).
         """
-        # Inline: Return empty for V1 testing
-        return {"entities": []}
+        prompt = "Provide a concise summary of this conversation (under 100 words): " + "\n".join([f"{m['role']}: {m['content']}" for m in messages])
+        summary = self.llm_proxy.complete(prompt, max_tokens=200)
+        logger.debug("History summarized", extra={"len": len(summary)})
+        return summary
 
-__all__ = ["StateManager", "ConversationMemory", "EntityMemory"]
+__all__ = ["StateManager", "ConversationMemory"]

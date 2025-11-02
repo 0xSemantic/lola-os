@@ -1,11 +1,16 @@
 # API Reference (Auto-Gen Stub - Phase 8 Full)
 
-## lola.utils.config
-- `Config`: Model with fields (llm_model, etc.).
-- `load_config(path=None) → Config`: Loads/validates.
+## lola.core.state
+- `State`: Model with messages/tool_results/timestamp (to_json/from_json, validate_messages).
 
-## lola.utils.logging
-- `setup_logger(name="lola", file="lola.log", level="INFO") → Logger`: JSON setup.
-- `JSONFormatter`: Custom str formatter.
+## lola.core.graph
+- `LOLAStateGraph`: Extend with add_node/edge/execute(async).
+
+## lola.core.memory
+- `StateManager`: save/load JSON.
+- `ConversationMemory`: extract_entities/summarize_history (LLMProxy).
+
+## lola.core.agent
+- `BaseAgent`: init/bind_tools/run/call_llm (abstract run).
 
 Docstrings: Inline Args/Returns.

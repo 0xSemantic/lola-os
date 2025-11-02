@@ -1,82 +1,92 @@
 # Standard imports
 import abc
-import typing as tp
+from typing import List, Optional, Any
 
 # Third-party imports
-# None (LLM calls stubbed for Phase 1)
+# None (uses phase 2 litellm proxy)
 
 # Local imports
-from .state import State
-from .graph import StateGraph
+from lola.utils.config import load_config
+from lola.utils.logging import setup_logger
+from lola.core.state import State
+from lola.core.graph import LOLAStateGraph
+from lola.core.memory import ConversationMemory
+from lola.libs.litellm.proxy import LLMProxy
 
 """
-File: Defines the abstract BaseAgent for LOLA OS agents.
+File: Base agent class for LOLA OS, integrating LLM, graph, and memory for orchestration.
 
-Purpose: Provides a standardized interface for agent templates to initialize and run workflows.
-How: Initializes with model/tools/graph/state, stubs LLM calls, and requires subclasses to implement run.
-Why: Enables developer-extensible agents in V1 with consistent orchestration, avoiding vendor lock-in.
+Purpose: Abstract base for agent templates, handling init/bind/run with LLM calls, graph execution, and memory integration.
+How: Init with config model, uses LLMProxy for call_llm, LOLAStateGraph for workflow, ConversationMemory for context.
+Why: Unifies agent logic in V1, ensuring scalable, sovereign orchestration with verifiable state and reflection.
 Full Path: lola-os/python/lola/core/agent.py
 """
 
-class BaseAgent(abc.ABC):
-    """BaseAgent: Abstract base class for all LOLA agents. Does NOT handle tool execution or LLM integration."""
+logger = setup_logger("lola.core.agent")
 
-    def __init__(self, model: str, tools: tp.List[tp.Any] = None, graph: tp.Optional[StateGraph] = None):
+class BaseAgent(abc.ABC):
+    """BaseAgent: Abstract base for LOLA agents, with LLM, graph, and memory. Does Not implement run—subclass for templates."""
+
+    def __init__(self, model: Optional[str] = None, tools: List[Any] = None):
         """
-        Initializes the agent with model, tools, and optional graph.
+        Initialize BaseAgent with model, tools, and default graph/memory.
 
         Args:
-            model: LLM model identifier (e.g., 'gpt-4o'; stubbed in V1).
-            tools: List of tools to bind (optional).
-            graph: Optional StateGraph for workflow (creates default if None).
+            model: LLM model for proxy (loads from config if None).
+            tools: List of tools to bind (e.g., phase 5 onchain/web).
 
-        Does Not: Validate model or tools; defer to runtime.
+        Does Not: Execute workflow—call run() in subclass.
         """
-        self.model = model
+        config = load_config()
+        self.model = model or config.llm_model
+        self.llm_proxy = LLMProxy(self.model)
+        self.memory = ConversationMemory(self.llm_proxy)
         self.tools = tools or []
-        self.graph = graph or StateGraph()
-        # Inline: Start with empty validated state
-        self.state = State()
+        self.graph = LOLAStateGraph()
+        logger.info("BaseAgent init", extra={"model": self.model, "tools": len(self.tools)})
 
-    def call_llm(self, prompt: str) -> str:
+    def call_llm(self, prompt: str, max_tokens: int = 1000) -> str:
         """
-        Stubs an LLM call for reasoning (full implementation in Phase 5).
+        Calls LLM via proxy with prompt for reasoning/reflection.
 
         Args:
             prompt: Input prompt string.
+            max_tokens: Max output tokens (default: 1000).
 
         Returns:
-            Stubbed response string for testing.
+            Response content string.
 
-        Does Not: Make real API calls; use for simulation only.
+        Does Not: Add to state—return raw for graph/memory use.
         """
-        # Inline: Return deterministic stub to enable reliable testing
-        return f"Stub LLM response for prompt: {prompt[:50]}..."  # Truncate for brevity
+        response = self.llm_proxy.complete(prompt, max_tokens=max_tokens)
+        logger.debug("LLM call", extra={"prompt_len": len(prompt), "response_len": len(response)})
+        return response
 
     @abc.abstractmethod
     def run(self, query: str) -> State:
         """
-        Abstract method to run the agent's workflow.
+        Abstract method to execute agent's task via graph.
 
         Args:
-            query: User input query string.
+            query: User query string.
 
         Returns:
-            Updated State after execution.
+            Final State with messages/tool_results/entities.
 
-        Does Not: Define specific logic; must be implemented in subclasses.
+        Does Not: Bind tools—call bind_tools() before run.
         """
-        raise NotImplementedError("Subclasses must implement run method.")
+        pass
 
-    def bind_tools(self, tools: tp.List[tp.Any]) -> None:
+    def bind_tools(self, tools: List[Any]) -> None:
         """
-        Binds additional tools to the agent.
+        Binds tools to agent for graph node use.
 
         Args:
-            tools: List of tools to add.
+            tools: List of tools (e.g., phase 5 base/onchain).
 
-        Does Not: Validate or duplicate-check tools; append only.
+        Does Not: Validate tool signatures—assume compatible with state.
         """
         self.tools.extend(tools)
+        logger.info("Tools bound", extra={"added": len(tools), "total": len(self.tools)})
 
 __all__ = ["BaseAgent"]

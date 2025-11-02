@@ -1,121 +1,93 @@
 # Standard imports
-import typing as tp
 import asyncio
+from typing import Dict, Any, Optional, Callable
 
 # Third-party imports
-# None (LangGraph stubbed for Phase 1)
+from langgraph.graph import END
 
 # Local imports
-from .state import State
+from lola.utils.config import load_config
+from lola.utils.logging import setup_logger
+from lola.libs.langgraph.adapter import SupervisedStateGraph
+from lola.core.state import State
 
 """
-File: StateGraph for orchestrating agent workflows.
+File: LangGraph extension for LOLA agent orchestration with async execution and supervision.
 
-Purpose: Extends LangGraph with supervision for turn limits and reflection.
-How: Manages nodes/edges, executes async workflows, enforces max_turns.
-Why: Provides robust orchestration for V1 agents.
+Purpose: Builds and executes async workflows for agents, integrating supervision (turns/reflection via phase 2 adapter) and config-driven limits.
+How: Extends SupervisedStateGraph with add_node/edge/compile/execute(async for parallel), using LLM for reflection in supervision.
+Why: Enables reliable, verifiable agent reasoning in V1, with async for concurrency and reflection to prevent loops/context loss.
 Full Path: lola-os/python/lola/core/graph.py
 """
 
-class StateGraph:
-    """StateGraph: Manages workflow execution with supervision. Does NOT integrate external APIs."""
+logger = setup_logger("lola.core.graph")
 
-    def __init__(self, state_type: tp.Type[State] = State):
+class LOLAStateGraph(SupervisedStateGraph):
+    """LOLAStateGraph: Core graph for agent workflows with async execution. Does NOT bind tools—use agent.bind_tools()."""
+
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
         """
-        Initializes the graph with a state type.
+        Initialize LOLAStateGraph with optional config for limits/LLM.
 
         Args:
-            state_type: State class for workflow (defaults to State).
+            config: Dict for max_turns/llm_model (loads from utils/config if None).
 
-        Does Not: Pre-build nodes/edges; configure at runtime.
+        Does Not: Add nodes/edges—call add_node/add_edge after init.
         """
-        self.nodes = {}
-        self.edges = {}
-        self.conditional_edges = {}
-        self.entry_point = None
-        self.state_type = state_type
-        self.max_turns = 10
-        # Inline: Track execution steps for supervision
-        self._step_count = 0
+        config = config or load_config().model_dump()
+        super().__init__(State, config)
+        logger.info("LOLAStateGraph init", extra={"max_turns": self.max_turns, "model": config.get("llm_model")})
 
-    def add_node(self, key: str, action: tp.Callable[[State], State]) -> None:
+    def add_node(self, name: str, func: Callable[[State], State]) -> "LOLAStateGraph":
         """
-        Adds a node to the graph.
+        Adds a node to the graph for workflow step.
 
         Args:
-            key: Node identifier.
-            action: Function to process state.
-
-        Does Not: Validate action compatibility.
-        """
-        self.nodes[key] = action
-
-    def add_edge(self, start: str, end: str) -> None:
-        """
-        Adds a direct edge between nodes.
-
-        Args:
-            start: Source node key.
-            end: Target node key.
-
-        Does Not: Check node existence; defer to execution.
-        """
-        self.edges[start] = end
-
-    def add_conditional_edges(self, start: str, condition: tp.Callable[[State], str], mapping: tp.Dict[str, str]) -> None:
-        """
-        Adds conditional edges based on a condition.
-
-        Args:
-            start: Source node key.
-            condition: Function returning next node key.
-            mapping: Dict mapping condition outputs to node keys.
-
-        Does Not: Validate condition/mapping; defer to execution.
-        """
-        self.conditional_edges[start] = (condition, mapping)
-
-    def set_entry_point(self, key: str) -> None:
-        """
-        Sets the starting node.
-
-        Args:
-            key: Entry node key.
-
-        Does Not: Validate key existence.
-        """
-        self.entry_point = key
-
-    async def execute(self, initial_state: State) -> State:
-        """
-        Executes the graph starting from entry_point.
-
-        Args:
-            initial_state: Initial State object.
+            name: Unique node name.
+            func: Callable taking/returning State (async/sync OK).
 
         Returns:
-            Final State after execution.
+            Self for chaining.
 
-        Does Not: Handle external API calls.
+        Does Not: Add edges—use add_edge after.
         """
-        state = initial_state
-        current_node = self.entry_point
-        self._step_count = 0
+        self.add_node(name, func)
+        logger.debug("Node added", extra={"name": name, "func_type": "async" if asyncio.iscoroutinefunction(func) else "sync"})
+        return self
 
-        while current_node and self._step_count < self.max_turns:
-            # Inline: Execute node action
-            if current_node in self.nodes:
-                state = self.nodes[current_node](state)
-                self._step_count += 1
+    def add_edge(self, from_node: str, to_node: str) -> "LOLAStateGraph":
+        """
+        Adds an edge from node to node/END.
 
-            # Inline: Follow conditional or direct edge
-            if current_node in self.conditional_edges:
-                condition, mapping = self.conditional_edges[current_node]
-                next_node = condition(state)
-                current_node = mapping.get(next_node, None)
-            else:
-                current_node = self.edges.get(current_node, None)
+        Args:
+            from_node: Source node name.
+            to_node: Target node name or END.
 
-        return state
+        Returns:
+            Self for chaining.
 
-__all__ = ["StateGraph"]
+        Does Not: Validate cycles—LangGraph checks on compile.
+        """
+        self.add_edge(from_node, to_node)
+        logger.debug("Edge added", extra={"from": from_node, "to": to_node})
+        return self
+
+    async def execute(self, initial_state: Dict[str, Any]) -> State:
+        """
+        Async executes the graph with initial state, compiling if needed.
+
+        Args:
+            initial_state: Dict to initialize State (e.g., {"messages": [...]}).
+
+        Returns:
+            Final State after workflow.
+
+        Does Not: Handle interruptions—use LangGraph interrupt param if needed.
+        """
+        compiled = self.compile_supervised()
+        final_dict = await compiled.ainvoke(initial_state)
+        final_state = State.model_validate(final_dict)
+        logger.info("Graph executed", extra={"steps": len(final_state.messages), "timestamp": final_state.timestamp})
+        return final_state
+
+__all__ = ["LOLAStateGraph"]

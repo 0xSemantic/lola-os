@@ -1,6 +1,6 @@
-from .agent import BaseAgent
-from .graph import StateGraph
 from .state import State
-from .memory import StateManager, ConversationMemory, EntityMemory
+from .graph import LOLAStateGraph
+from .memory import StateManager, ConversationMemory
+from .agent import BaseAgent
 
-__all__ = ["BaseAgent", "StateGraph", "State", "StateManager", "ConversationMemory", "EntityMemory"]
+__all__ = ["State", "LOLAStateGraph", "StateManager", "ConversationMemory", "BaseAgent"]
