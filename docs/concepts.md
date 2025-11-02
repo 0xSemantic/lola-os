@@ -1,9 +1,11 @@
 # Core Concepts (V1)
 
-## Utils: Config & Logging
-- **Config**: Pydantic + .env/YAML. Defaults: Gemini 1.5 Flash. Secrets: SecretStr (masked).
-- **Logging**: JSON extras, rotation. Use: `logger.info(..., extra={"trace": id})`.
+## Libs: Adapters
+- **LiteLLM Proxy**: Routes/fallback (Gemini default), cost est.
+- **LangGraph Adapter**: Supervised graphs (turns/reflect).
+- **Crawl4AI**: Async JS crawl, JSON extract.
+- **Web3**: Multi-RPC connect, contract call, wallet sign, gas sim.
 
-Why? Sovereign: Switch providers via config, no hardcodes.
+Use: `from lola.libs import LLMProxy`—config-driven.
 
-Next: Libs adapters (LiteLLM routes).
+Next: Phase 3 core uses adapters.
