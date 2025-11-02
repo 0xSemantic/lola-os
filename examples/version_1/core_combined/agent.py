@@ -3,7 +3,7 @@ import asyncio
 from typing import Dict, str, Any
 
 # Third-party imports
-# None
+from langgraph.graph import END
 
 # Local imports
 from lola.core.agent import BaseAgent

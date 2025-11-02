@@ -1,0 +1,3 @@
+evm_rpcs:
+  sepolia: "https://sepolia.infura.io/v3/placeholder"  # Replace with real
+evm_private_key: "0xplaceholder"  # From .env

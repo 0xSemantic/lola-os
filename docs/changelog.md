@@ -15,4 +15,9 @@
 - Tests: 6 pass, real/mocked LLM.
 - Examples: 2 (standalone/combined).
 
-Next: Phase 4 chains.
+## v1.0.0-alpha.4 (Phase 4 - 2025-11-02)
+- Add chains: Connection (multi-RPC), Contract (ABI/call), Wallet (balance/sign), KeyManager (secure load), Utils (gas/sim).
+- Tests: 8 pass, mocked web3 for unit, real structure.
+- Examples: 2 (standalone/combined).
+
+Next: Phase 5 tools.

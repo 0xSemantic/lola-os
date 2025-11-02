@@ -1,0 +1,4 @@
+evm_rpcs:
+  sepolia: "https://sepolia.infura.io/v3/placeholder"
+evm_private_key: "0xplaceholder"
+crawl_timeout: 30
