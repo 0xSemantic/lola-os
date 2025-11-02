@@ -72,7 +72,8 @@ def load_config(config_path: Optional[str] = None) -> Config:
     # Inline: Load .env for secrets/overrides
     load_dotenv()
 
-    config_path = config_path or Path.cwd() / "config.yaml"
+    # Inline: Convert to Path early for .exists()
+    config_path = Path(config_path) if config_path else Path.cwd() / "config.yaml"
     yaml_data = {}
     if config_path.exists():
         with open(config_path, "r") as f:

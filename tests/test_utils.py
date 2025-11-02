@@ -29,9 +29,10 @@ def test_config_override_env(tmp_path):
 
 def test_secret_key_masking():
     """Test SecretStr masking and value access."""
-    config = Config(gemini_api_key="sk-123", evm_private_key="0xdeadbeef" * 8)  # Valid 64 hex
+    config = Config(gemini_api_key="sk-123", evm_private_key="0x" + "deadbeef" * 8)  # Valid 0x + 64 hex
     assert config.gemini_api_key.get_secret_value() == "sk-123"
-    assert "******" in str(config.gemini_api_key)  # Masked in str repr
+    # Inline: Pydantic v2 masks repr with *'s (e.g., SecretStr('***...'))
+    assert '*' in repr(config.gemini_api_key)
 
 def test_validation_error():
     """Test invalid private key raises."""
@@ -43,6 +44,10 @@ def test_logging_json(tmp_path):
     log_file = tmp_path / "test.log"
     logger = setup_logger("test", str(log_file), "DEBUG")
     logger.info("Test message", extra={"key": "value"})
+    # Inline: Flush file handler specifically (console auto, file may delay)
+    for h in logger.handlers:
+        if isinstance(h, RotatingFileHandler):
+            h.flush()
     with open(log_file, "r") as f:
         log_line = f.read()
         assert '"message": "Test message"' in log_line

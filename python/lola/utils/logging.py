@@ -1,7 +1,7 @@
 # Standard imports
+import os
 import logging
 import json
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any
@@ -18,16 +18,25 @@ Why: Ensures observability without vendor lock-in, aligned to LOLA's developer s
 Full Path: lola-os/python/lola/utils/logging.py
 """
 
+_STANDARD_KEYS = {
+    'name', 'msg', 'args', 'levelname', 'levelno', 'pathname', 'filename', 'module',
+    'exc_info', 'exc_text', 'stack_info', 'lineno', 'funcName', 'created', 'msecs',
+    'relativeCreated', 'thread', 'threadName', 'processName', 'process', 'message'
+}
+
 class JSONFormatter(logging.Formatter):
     """JSONFormatter: Custom formatter for structured logs. Does NOT handle non-dict extras."""
 
     def format(self, record: logging.LogRecord) -> str:
+        # Inline: Extract extras from record.__dict__ (logging flattens extra kwarg)
+        extra = {k: v for k, v in record.__dict__.items() if k not in _STANDARD_KEYS}
+        extra.setdefault("process_id", os.getpid())
         log_entry: Dict[str, Any] = {
             "timestamp": datetime.fromtimestamp(record.created).isoformat(),
             "level": record.levelname,
             "name": record.name,
             "message": record.getMessage(),
-            "extra": getattr(record, "extra", {}),
+            "extra": extra,
         }
         if record.exc_info:
             log_entry["exception"] = self.formatException(record.exc_info)
@@ -65,11 +74,6 @@ def setup_logger(name: str = "lola", log_file: str = "lola.log", level: str = "I
     )
     file_handler.setFormatter(JSONFormatter())
     logger.addHandler(file_handler)
-
-    # Inline: Add process ID to extras for multi-instance debugging
-    for h in logger.handlers:
-        if not hasattr(h, "extra"):
-            h.extra = {"process_id": os.getpid()}
 
     return logger
 
