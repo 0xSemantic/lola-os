@@ -1,0 +1,7 @@
+graph TD
+    A[CLI] --> B[Agents]
+    B --> C[Core: StateGraph/State/Memory]
+    B --> D[Tools: WebCrawl/Onchain]
+    D --> E[Chains: Connection/Wallet/Contract]
+    C --> F[Libs: LangGraph/LiteLLM/Crawl4AI/Web3]
+    F --> G[Utils: Config/Logging]

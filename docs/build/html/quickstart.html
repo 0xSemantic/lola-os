@@ -1,0 +1,233 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quickstart Guide &mdash; LOLA OS 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LOLA OS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Quickstart Guide</a><ul>
+<li><a class="reference internal" href="#step-1-prerequisites">Step 1: Prerequisites</a></li>
+<li><a class="reference internal" href="#step-2-install-lola-os">Step 2: Install LOLA OS</a></li>
+<li><a class="reference internal" href="#step-3-configure">Step 3: Configure</a></li>
+<li><a class="reference internal" href="#step-4-run-your-first-agent">Step 4: Run Your First Agent</a></li>
+<li><a class="reference internal" href="#step-5-understand-what-happened">Step 5: Understand What Happened</a></li>
+<li><a class="reference internal" href="#step-6-customize">Step 6: Customize</a></li>
+<li><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+<li><a class="reference internal" href="#best-practices">Best Practices</a></li>
+<li><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LOLA OS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Quickstart Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/quickstart.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="quickstart-guide">
+<h1>Quickstart Guide<a class="headerlink" href="#quickstart-guide" title="Link to this heading"></a></h1>
+<p>This guide takes you from zero to running your first LOLA OS agent in 10 minutes. No prior AI/blockchain experience required.</p>
+<section id="step-1-prerequisites">
+<h2>Step 1: Prerequisites<a class="headerlink" href="#step-1-prerequisites" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Python 3.12+ (download from python.org).</p></li>
+<li><p>Poetry (install with <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">poetry</span></code>).</p></li>
+<li><p>Git (for cloning repo).</p></li>
+<li><p>Free Gemini API key (sign up at https://ai.google.dev and generate key).</p></li>
+<li><p>Optional: Sepolia testnet RPC (free from Alchemy at https://alchemy.com—create account, get Sepolia URL).</p></li>
+</ul>
+</section>
+<section id="step-2-install-lola-os">
+<h2>Step 2: Install LOLA OS<a class="headerlink" href="#step-2-install-lola-os" title="Link to this heading"></a></h2>
+<ol class="arabic">
+<li><p>Clone the repository:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/0xSemantic/lola-os.git
+<span class="nb">cd</span><span class="w"> </span>lola-os
+</pre></div>
+</div>
+</li>
+<li><p>Install dependencies:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>poetry<span class="w"> </span>install
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<section id="step-3-configure">
+<h2>Step 3: Configure<a class="headerlink" href="#step-3-configure" title="Link to this heading"></a></h2>
+<ol class="arabic">
+<li><p>Copy sample env:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp<span class="w"> </span>examples/version_1/easy/01_web_qa_bot/.env.sample<span class="w"> </span>.env
+</pre></div>
+</div>
+</li>
+<li><p>Edit <code class="docutils literal notranslate"><span class="pre">.env</span></code> with your Gemini key:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>GEMINI_API_KEY=your_gemini_key_here
+</pre></div>
+</div>
+</li>
+<li><p>For EVM examples, add to <code class="docutils literal notranslate"><span class="pre">.env</span></code>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>PRIVATE_KEY=your_testnet_private_key
+EVM_RPC_SEPOLIA=your_alchemy_sepolia_url
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<section id="step-4-run-your-first-agent">
+<h2>Step 4: Run Your First Agent<a class="headerlink" href="#step-4-run-your-first-agent" title="Link to this heading"></a></h2>
+<ol class="arabic">
+<li><p>Scaffold a project:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>poetry<span class="w"> </span>run<span class="w"> </span>lola<span class="w"> </span>create<span class="w"> </span>my_agent<span class="w"> </span>--template<span class="w"> </span>react
+<span class="nb">cd</span><span class="w"> </span>my_agent
+</pre></div>
+</div>
+</li>
+<li><p>Run the agent:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>poetry<span class="w"> </span>run<span class="w"> </span>lola<span class="w"> </span>run<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;Crawl example.com and summarize&quot;</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Output: Agent response with summary from the site.</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="step-5-understand-what-happened">
+<h2>Step 5: Understand What Happened<a class="headerlink" href="#step-5-understand-what-happened" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">lola</span> <span class="pre">create</span></code>: Created a ReAct agent template with <code class="docutils literal notranslate"><span class="pre">agent.py</span></code>, <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code>, <code class="docutils literal notranslate"><span class="pre">.env.sample</span></code>, and <code class="docutils literal notranslate"><span class="pre">README.md</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lola</span> <span class="pre">run</span></code>: Loaded the agent, called <code class="docutils literal notranslate"><span class="pre">run(&quot;query&quot;)</span></code>, and outputted the state.</p></li>
+<li><p>The agent used Gemini LLM to reason and Crawl4AI to fetch data.</p></li>
+</ul>
+</section>
+<section id="step-6-customize">
+<h2>Step 6: Customize<a class="headerlink" href="#step-6-customize" title="Link to this heading"></a></h2>
+<ol class="arabic">
+<li><p>Edit <code class="docutils literal notranslate"><span class="pre">agent.py</span></code> to add a tool:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lola.tools.onchain.contract_call</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContractCallTool</span>
+<span class="n">agent</span><span class="o">.</span><span class="n">bind_tools</span><span class="p">([</span><span class="n">ContractCallTool</span><span class="p">()])</span>
+</pre></div>
+</div>
+</li>
+<li><p>Rerun with a new query:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>poetry<span class="w"> </span>run<span class="w"> </span>lola<span class="w"> </span>run<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;Check balance on Sepolia&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p>Exercise: Add your own tool or change the LLM model in <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> to “openai/gpt-4o” (add OPENAI_API_KEY to <code class="docutils literal notranslate"><span class="pre">.env</span></code>).</p></li>
+</ol>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Poetry install fail? Check Python version (<code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">--version</span></code>).</p></li>
+<li><p>LLM error? Verify <code class="docutils literal notranslate"><span class="pre">GEMINI_API_KEY</span></code> in <code class="docutils literal notranslate"><span class="pre">.env</span></code>.</p></li>
+<li><p>EVM error? Ensure PRIVATE_KEY and RPC URL are set.</p></li>
+<li><p>CLI not found? Run <code class="docutils literal notranslate"><span class="pre">poetry</span> <span class="pre">install</span></code> again.</p></li>
+</ul>
+</section>
+<section id="best-practices">
+<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Use testnet for EVM to avoid real funds.</p></li>
+<li><p>Secure keys—never commit <code class="docutils literal notranslate"><span class="pre">.env</span></code>.</p></li>
+<li><p>Log everything for debugging (<code class="docutils literal notranslate"><span class="pre">lola.log</span></code>).</p></li>
+</ul>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Explore Concepts to understand components.</p></li>
+<li><p>Try Tutorials for advanced building.</p></li>
+<li><p>Run more examples in <code class="docutils literal notranslate"><span class="pre">examples/version_1/</span></code>.</p></li>
+<li><p>Contribute on GitHub!</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Levi Chinecherem Chidi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

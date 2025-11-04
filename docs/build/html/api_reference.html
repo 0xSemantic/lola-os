@@ -1,0 +1,164 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Reference &mdash; LOLA OS 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LOLA OS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">API Reference</a><ul>
+<li><a class="reference internal" href="#utils">Utils</a></li>
+<li><a class="reference internal" href="#libs">Libs</a></li>
+<li><a class="reference internal" href="#core">Core</a></li>
+<li><a class="reference internal" href="#agents">Agents</a></li>
+<li><a class="reference internal" href="#tools">Tools</a></li>
+<li><a class="reference internal" href="#chains">Chains</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LOLA OS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API Reference</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/api_reference.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api-reference">
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading"></a></h1>
+<p>Full documentation of LOLA OS modules, classes, and functions.</p>
+<section id="utils">
+<h2>Utils<a class="headerlink" href="#utils" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Config</span></code>: Pydantic model for configuration.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">load_config()</span></code>: Loads config from .env/yaml.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">setup_logger()</span></code>: Configures structured logger.</p></li>
+</ul>
+</section>
+<section id="libs">
+<h2>Libs<a class="headerlink" href="#libs" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">LLMProxy</span></code>: Provider-agnostic LLM caller.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SupervisedStateGraph</span></code>: Extended LangGraph with supervision.</p></li>
+</ul>
+</section>
+<section id="core">
+<h2>Core<a class="headerlink" href="#core" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">BaseAgent</span></code>: Abstract agent base.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LOLAStateGraph</span></code>: Workflow graph.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">State</span></code>: Agent state model.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ConversationMemory</span></code>: History summarization.</p></li>
+</ul>
+</section>
+<section id="agents">
+<h2>Agents<a class="headerlink" href="#agents" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ReActAgent</span></code>: Reasoning-action loop.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PlanExecuteAgent</span></code>: Planning and execution.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ConversationalAgent</span></code>: Multi-turn conversation.</p></li>
+</ul>
+</section>
+<section id="tools">
+<h2>Tools<a class="headerlink" href="#tools" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">BaseTool</span></code>: Abstract tool base.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WebCrawlTool</span></code>: Web extraction.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ContractCallTool</span></code>: EVM read.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TransactTool</span></code>: EVM write.</p></li>
+</ul>
+</section>
+<section id="chains">
+<h2>Chains<a class="headerlink" href="#chains" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Web3Connection</span></code>: RPC connection.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LOLAContract</span></code>: Contract interaction.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LOLAWallet</span></code>: Wallet management.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">KeyManager</span></code>: Key loading.</p></li>
+</ul>
+<p>Generated with Sphinx autodoc—run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">html</span></code> in docs/ to view.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Levi Chinecherem Chidi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

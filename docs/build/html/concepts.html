@@ -1,0 +1,202 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Core Concepts &mdash; LOLA OS 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LOLA OS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Core Concepts</a><ul>
+<li><a class="reference internal" href="#beginner-overview">Beginner: Overview</a></li>
+<li><a class="reference internal" href="#intermediate-deep-dive">Intermediate: Deep Dive</a></li>
+<li><a class="reference internal" href="#advanced-customization">Advanced: Customization</a></li>
+<li><a class="reference internal" href="#best-practices">Best Practices</a></li>
+<li><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+<li><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LOLA OS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Core Concepts</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/concepts.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="core-concepts">
+<h1>Core Concepts<a class="headerlink" href="#core-concepts" title="Link to this heading"></a></h1>
+<p>Build a strong foundation with LOLA OS components. This guide progresses from beginner explanations to advanced usage.</p>
+<section id="beginner-overview">
+<h2>Beginner: Overview<a class="headerlink" href="#beginner-overview" title="Link to this heading"></a></h2>
+<p>LOLA OS is like an operating system for AI agents on blockchain. Key parts:</p>
+<ul class="simple">
+<li><p><strong>Agents</strong>: The “brains” that reason and act (e.g., ReAct for loop-based reasoning).</p></li>
+<li><p><strong>Tools</strong>: Plugins for actions (e.g., web crawl, EVM call).</p></li>
+<li><p><strong>Chains</strong>: Blockchain connections (e.g., multi-RPC for Ethereum chains).</p></li>
+<li><p><strong>Libs</strong>: Adapters for external libraries (e.g., LiteLLM for LLMs).</p></li>
+<li><p><strong>Core</strong>: Orchestration (state, graph, memory for workflows).</p></li>
+<li><p><strong>CLI</strong>: Command-line for scaffolding/running.</p></li>
+<li><p><strong>Utils</strong>: Config/logging for setup.</p></li>
+</ul>
+</section>
+<section id="intermediate-deep-dive">
+<h2>Intermediate: Deep Dive<a class="headerlink" href="#intermediate-deep-dive" title="Link to this heading"></a></h2>
+<ul>
+<li><p><strong>BaseAgent</strong>: Abstract class for all agents. Extend it:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MyAgent</span><span class="p">(</span><span class="n">BaseAgent</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">State</span><span class="p">:</span>
+        <span class="c1"># Custom logic</span>
+        <span class="k">return</span> <span class="n">State</span><span class="p">(</span><span class="n">messages</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;assistant&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Response&quot;</span><span class="p">}])</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Bind tools: <code class="docutils literal notranslate"><span class="pre">agent.bind_tools([WebCrawlTool()])</span></code>.</p></li>
+</ul>
+</li>
+<li><p><strong>StateGraph</strong>: Build workflows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">graph</span> <span class="o">=</span> <span class="n">LOLAStateGraph</span><span class="p">()</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;step1&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">state</span><span class="p">:</span> <span class="n">state</span><span class="p">)</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;__start__&quot;</span><span class="p">,</span> <span class="s2">&quot;step1&quot;</span><span class="p">)</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;step1&quot;</span><span class="p">,</span> <span class="n">END</span><span class="p">)</span>
+<span class="n">state</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">execute</span><span class="p">({</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[]}))</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Memory</strong>: Manage context:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">memory</span> <span class="o">=</span> <span class="n">ConversationMemory</span><span class="p">(</span><span class="n">LLMProxy</span><span class="p">())</span>
+<span class="n">summary</span> <span class="o">=</span> <span class="n">memory</span><span class="o">.</span><span class="n">summarize_history</span><span class="p">([{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Hello&quot;</span><span class="p">}])</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Tools/Chains</strong>: EVM example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tool</span> <span class="o">=</span> <span class="n">ContractCallTool</span><span class="p">()</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">tool</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">contract_address</span><span class="o">=</span><span class="s2">&quot;0x...&quot;</span><span class="p">,</span> <span class="n">function_name</span><span class="o">=</span><span class="s2">&quot;balanceOf&quot;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;0x...&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>CLI</strong>: Scaffold and run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>lola<span class="w"> </span>create<span class="w"> </span>my_agent<span class="w"> </span>--template<span class="w"> </span>react
+lola<span class="w"> </span>run<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;Test&quot;</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+<section id="advanced-customization">
+<h2>Advanced: Customization<a class="headerlink" href="#advanced-customization" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Extend agents for custom workflows (e.g., add RAG in future).</p></li>
+<li><p>Configure multi-chain: Edit <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> for RPCs.</p></li>
+<li><p>Integrate libs: Switch LLM providers in LiteLLM proxy.</p></li>
+<li><p>Error handling: Use logger for traceability.</p></li>
+<li><p>Performance: Use async for concurrent tools.</p></li>
+</ul>
+</section>
+<section id="best-practices">
+<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Start simple: Use ReAct for most tasks.</p></li>
+<li><p>Secure keys: Always use SecretStr for private_key.</p></li>
+<li><p>Test locally: Use Sepolia testnet, free Gemini.</p></li>
+</ul>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Import error? Check <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> exports.</p></li>
+<li><p>LLM fail? Verify API key in <code class="docutils literal notranslate"><span class="pre">.env</span></code>.</p></li>
+<li><p>EVM error? Check RPC URLs in config.</p></li>
+</ul>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Tutorials for hands-on practice.</p></li>
+<li><p>API Reference for module details.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Levi Chinecherem Chidi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
