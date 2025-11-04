@@ -30,4 +30,6 @@
 - Tests: 8 pass, mocked LLM/tool, real structure.
 - Examples: 2 (standalone/combined).
 
-Next: Phase 7 CLI.
+## v1.0.0-alpha.6 (Phase 6 - 2025-11-02)
+Version 1.0 - TMVP1. Phase 7 complete: CLI ready. Run `lola --help` for commands.
+Quickstart: lola create my_agent && cd my_agent && lola run --query "Test"

@@ -25,22 +25,26 @@ _STANDARD_KEYS = {
 }
 
 class JSONFormatter(logging.Formatter):
-    """JSONFormatter: Custom formatter for structured logs. Does NOT handle non-dict extras."""
+    """JSONFormatter: Custom formatter for structured logs with safe attribute handling."""
 
     def format(self, record: logging.LogRecord) -> str:
-        # Inline: Extract extras from record.__dict__ (logging flattens extra kwarg)
-        extra = {k: v for k, v in record.__dict__.items() if k not in _STANDARD_KEYS}
-        extra.setdefault("process_id", os.getpid())
+        # Safely handle extra as a dict, default to empty
+        extra = getattr(record, 'extra', {}) or {}
+        if not isinstance(extra, dict):
+            extra = {}
+        # Exclude reserved keys from extra
+        extra = {k: v for k, v in extra.items() if k not in _STANDARD_KEYS}
+        extra['process_id'] = os.getpid()
         log_entry: Dict[str, Any] = {
             "timestamp": datetime.fromtimestamp(record.created).isoformat(),
             "level": record.levelname,
-            "name": record.name,
+            "logger_name": record.name,
             "message": record.getMessage(),
             "extra": extra,
         }
         if record.exc_info:
             log_entry["exception"] = self.formatException(record.exc_info)
-        return json.dumps(log_entry)
+        return json.dumps(log_entry, default=str)  # Handle non-serializable types
 
 def setup_logger(name: str = "lola", log_file: str = "lola.log", level: str = "INFO") -> logging.Logger:
     """
@@ -53,22 +57,20 @@ def setup_logger(name: str = "lola", log_file: str = "lola.log", level: str = "I
 
     Returns:
         Configured logger instance.
-
-    Does Not: Configure external handlers—focus on LOLA root.
     """
-    # Inline: Remove existing handlers to avoid duplicates
+    # Remove existing handlers to avoid duplicates
     for handler in logging.root.handlers[:]:
         logging.root.removeHandler(handler)
 
     logger = logging.getLogger(name)
     logger.setLevel(getattr(logging, level.upper()))
 
-    # Inline: Console handler with JSON
+    # Console handler with JSON
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(JSONFormatter())
     logger.addHandler(console_handler)
 
-    # Inline: File handler with rotation (10MB, 5 backups)
+    # File handler with rotation (10MB, 5 backups)
     file_handler = RotatingFileHandler(
         Path(log_file), maxBytes=10*1024*1024, backupCount=5, encoding="utf-8"
     )

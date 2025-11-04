@@ -26,6 +26,7 @@ litellm = "^1.45.2"
 crawl4ai = "^0.3.7"
 web3 = "^6.15.0"
 eth-account = "^0.10.0"
+click = "^8.3.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.2"
