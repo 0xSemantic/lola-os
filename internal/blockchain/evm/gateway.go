@@ -44,6 +44,11 @@ func (g *EVMGateway) Close() {
 	g.client.Close()
 }
 
+// SetClient replaces the underlying client (for testing only).
+func (g *EVMGateway) SetClient(client *Client) {
+	g.client = client
+}
+
 // GetBalance returns the balance of the given address at the specified block.
 // If block is nil, the latest block is used.
 func (g *EVMGateway) GetBalance(ctx context.Context, address string, block blockchain.BlockNumber) (*big.Int, error) {

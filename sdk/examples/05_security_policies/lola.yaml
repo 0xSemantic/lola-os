@@ -1,0 +1,9 @@
+security:
+  max_transaction_value: 0.5 eth
+  daily_limit: 1 eth
+  allowed_addresses:
+    - "0x742d35Cc6634C0532925a3b844Bc9e90F1A6B1E7"
+  human_in_the_loop:
+    enabled: true
+    threshold: 0.1 eth
+    mode: console

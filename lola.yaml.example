@@ -1,0 +1,76 @@
+# LOLA OS Configuration Example
+# Copy to lola.yaml and customize.
+
+version: "1.0"
+name: "my-trading-agent"
+
+chains:
+  ethereum:
+    rpc: ${ETH_MAINNET_RPC}          # references environment variable
+    confirmations: 2
+    gas_price_limit: 100 gwei
+    default: true
+
+  polygon:
+    rpc: ${POLYGON_RPC}
+    confirmations: 3
+    gas_price_limit: 200 gwei
+
+  # Custom chain
+  my-local-geth:
+    chain_id: 1337
+    rpc: http://localhost:8545
+    native_currency: ETH
+    block_time: 2s
+    confirmations: 1
+
+wallet:
+  keystore_path: ./keystore
+  passphrase_env: LOLA_KEYSTORE_PASSPHRASE
+  timeout: 30s
+
+security:
+  # Global read‑only (overrides wallet presence)
+  read_only: false
+
+  # Per‑transaction limit
+  max_transaction_value: 1 eth
+
+  # Daily spend limit (rolling 24h)
+  daily_limit: 5 eth
+
+  # Address restrictions
+  allowed_addresses:
+    - "0x742d35Cc6634C0532925a3b844Bc9e90F1A6B1E7"
+  blocked_addresses: []
+
+  # Human‑in‑the‑loop
+  human_in_the_loop:
+    enabled: true
+    threshold: 0.5 eth
+    timeout: 5m
+    mode: console
+
+observability:
+  logging:
+    level: info
+    format: json
+    output: stdout
+
+  metrics:
+    enabled: false
+    addr: :9090
+    path: /metrics
+
+  tracing:
+    enabled: false
+    exporter: stdout
+    service_name: lola-agent
+
+  audit:
+    enabled: true
+    path: ./lola.audit.log
+
+advanced:
+  rpc_retries: 3
+  rpc_backoff: 100ms

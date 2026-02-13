@@ -89,4 +89,16 @@ func (c *Client) DeployContract(ctx context.Context, bytecode []byte) (string, s
 	return txHash, addr.Hex(), err
 }
 
+// BindContract creates a high‑level contract binding.
+func BindContract(ctx context.Context, client *Client, address, abiJSON string) (types.Contract, error) {
+	if client.chain == nil {
+		return nil, fmt.Errorf("evm client: no chain available")
+	}
+	gw, ok := client.chain.(*evm.EVMGateway)
+	if !ok {
+		return nil, fmt.Errorf("evm client: chain is not EVM gateway")
+	}
+	return evm.NewBoundContract(address, abiJSON, gw)
+}
+
 // EOF: sdk/evm/client.go

@@ -260,4 +260,9 @@ func (r *Runtime) EVM(ctx context.Context) (*evm.Client, error) {
 	return evm.NewClient(sess), nil
 }
 
+// Config returns the runtime configuration.
+func (r *Runtime) Config() *config.Config {
+	return r.config
+}
+
 // EOF: sdk/runtime.go
