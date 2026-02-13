@@ -1,1 +1,214 @@
 documentation
+
+# =========================
+
+# Go Build Artifacts
+
+# =========================
+
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+*.a
+
+# Binary output folders
+
+bin/
+dist/
+build/
+release/
+
+# Go coverage files
+
+*.cover
+coverage.*
+cover.out
+
+# =========================
+
+# Go Modules / Vendor
+
+# =========================
+
+# Uncomment if you vendor dependencies
+
+# vendor/
+
+# Go workspace
+
+go.work
+go.work.sum
+
+# =========================
+
+# Logs & Runtime Files
+
+# =========================
+
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+
+# =========================
+
+# OS Generated Files
+
+# =========================
+
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+
+*~
+
+# =========================
+
+# IDE / Editor Files
+
+# =========================
+
+# VS Code
+
+.vscode/
+
+# GoLand / IntelliJ
+
+.idea/
+
+# Sublime
+
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+
+*.swp
+*.swo
+
+# Emacs
+
+*~
+
+# =========================
+
+# Environment / Secrets
+
+# =========================
+
+.env
+.env.*
+*.env
+
+# Config overrides
+
+config.local.*
+secrets.*
+*.key
+*.pem
+*.crt
+
+# =========================
+
+# Test / Debug
+
+# =========================
+
+debug/
+testdata/output/
+*.prof
+*.pprof
+
+# =========================
+
+# Dependency / Package Managers
+
+# =========================
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+
+# Docker / DevOps
+
+# =========================
+
+.docker/
+docker-compose.override.yml
+
+# =========================
+
+# Generated Code
+
+# =========================
+
+*.pb.go
+*.gen.go
+*.generated.go
+
+# =========================
+
+# Cache Directories
+
+# =========================
+
+.cache/
+.gocache/
+.gomodcache/
+
+# =========================
+
+# Misc Project Files
+
+# =========================
+
+*.pid
+*.seed
+*.lock
+
+# =========================
+
+# Terraform / Infra (if used)
+
+# =========================
+
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# =========================
+
+# Kubernetes
+
+# =========================
+
+*.kubeconfig
+
+# =========================
+
+# macOS / Linux Trash
+
+# =========================
+
+.Trash
+.nfs*
+
+# =========================
+
+# Optional: Ignore Docs Build
+
+# =========================
+
+public/
+docs/build/
