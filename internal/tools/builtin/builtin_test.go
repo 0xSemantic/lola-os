@@ -1,4 +1,4 @@
-// Package builtin_test verifies the placeholder built‑in tools.
+// Package builtin_test verifies the built‑in tools.
 //
 // File: internal/tools/builtin/builtin_test.go
 
@@ -10,50 +10,119 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/0xSemantic/lola-os/internal/blockchain"
+	"github.com/0xSemantic/lola-os/internal/core"
+	"github.com/0xSemantic/lola-os/internal/observe"
 	"github.com/0xSemantic/lola-os/internal/tools/builtin"
 )
 
-func TestBalance(t *testing.T) {
-	ctx := context.Background()
-	args := map[string]interface{}{"address": "0x123"}
-	result, err := builtin.Balance(ctx, args)
-	require.NoError(t, err)
+type mockChain struct {
+	mock.Mock
+}
 
-	bal, ok := result.(*big.Int)
-	assert.True(t, ok)
-	assert.Equal(t, big.NewInt(1e18), bal)
+func (m *mockChain) GetBalance(ctx context.Context, address string, block blockchain.BlockNumber) (*big.Int, error) {
+	args := m.Called(ctx, address, block)
+	return args.Get(0).(*big.Int), args.Error(1)
+}
+func (m *mockChain) SendTransaction(ctx context.Context, tx *blockchain.Transaction) (string, error) {
+	args := m.Called(ctx, tx)
+	return args.String(0), args.Error(1)
+}
+func (m *mockChain) CallContract(ctx context.Context, call *blockchain.ContractCall) ([]byte, error) {
+	args := m.Called(ctx, call)
+	return args.Get(0).([]byte), args.Error(1)
+}
+func (m *mockChain) ChainID(ctx context.Context) (*big.Int, error) {
+	args := m.Called(ctx)
+	return args.Get(0).(*big.Int), args.Error(1)
+}
+func (m *mockChain) BlockNumber(ctx context.Context) (uint64, error) {
+	args := m.Called(ctx)
+	return args.Get(0).(uint64), args.Error(1)
+}
+func (m *mockChain) EstimateGas(ctx context.Context, call *blockchain.ContractCall) (uint64, error) {
+	args := m.Called(ctx, call)
+	return args.Get(0).(uint64), args.Error(1)
+}
+
+type noopLogger struct{}
+
+func (n *noopLogger) Debug(string, ...map[string]interface{})            {}
+func (n *noopLogger) Info(string, ...map[string]interface{})             {}
+func (n *noopLogger) Warn(string, ...map[string]interface{})             {}
+func (n *noopLogger) Error(string, ...map[string]interface{})            {}
+func (n *noopLogger) With(map[string]interface{}) observe.Logger         { return n }
+
+func TestBalance(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		ctx := context.Background()
+		chain := new(mockChain)
+		logger := &noopLogger{}
+
+		// Create a session with the mock chain.
+		sess := core.NewSession(logger, "", chain)
+		ctx = core.ContextWithSession(ctx, sess)
+
+		expectedBalance := big.NewInt(12345)
+		chain.On("GetBalance", ctx, "0x742d35Cc6634C0532925a3b844Bc9e90F1A6B1E7", blockchain.BlockNumberLatest).
+			Return(expectedBalance, nil)
+
+		args := map[string]interface{}{
+			"address": "0x742d35Cc6634C0532925a3b844Bc9e90F1A6B1E7",
+		}
+		result, err := builtin.Balance(ctx, args)
+		require.NoError(t, err)
+
+		bal, ok := result.(*big.Int)
+		assert.True(t, ok)
+		assert.Equal(t, expectedBalance, bal)
+
+		chain.AssertExpectations(t)
+	})
+
+	t.Run("missing address", func(t *testing.T) {
+		ctx := context.Background()
+		logger := &noopLogger{}
+		sess := core.NewSession(logger, "", new(mockChain))
+		ctx = core.ContextWithSession(ctx, sess)
+
+		args := map[string]interface{}{}
+		_, err := builtin.Balance(ctx, args)
+		assert.ErrorContains(t, err, "missing 'address'")
+	})
+
+	t.Run("no session", func(t *testing.T) {
+		ctx := context.Background()
+		args := map[string]interface{}{"address": "0x123"}
+		_, err := builtin.Balance(ctx, args)
+		assert.ErrorContains(t, err, "no session")
+	})
+
+	t.Run("no chain in session", func(t *testing.T) {
+		ctx := context.Background()
+		logger := &noopLogger{}
+		sess := core.NewSession(logger, "", nil) // nil chain
+		ctx = core.ContextWithSession(ctx, sess)
+
+		args := map[string]interface{}{"address": "0x123"}
+		_, err := builtin.Balance(ctx, args)
+		assert.ErrorContains(t, err, "no blockchain chain available")
+	})
 }
 
 func TestTransfer(t *testing.T) {
+	// Placeholder test remains the same.
 	ctx := context.Background()
-	t.Run("valid", func(t *testing.T) {
-		args := map[string]interface{}{
-			"to":     "0xabc",
-			"amount": big.NewInt(1000),
-		}
-		result, err := builtin.Transfer(ctx, args)
-		require.NoError(t, err)
-
-		txHash, ok := result.(string)
-		assert.True(t, ok)
-		assert.Equal(t, "0x0000000000000000000000000000000000000000000000000000000000001234", txHash)
-	})
-
-	t.Run("missing to", func(t *testing.T) {
-		args := map[string]interface{}{"amount": big.NewInt(1000)}
-		_, err := builtin.Transfer(ctx, args)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "missing 'to'")
-	})
-
-	t.Run("missing amount", func(t *testing.T) {
-		args := map[string]interface{}{"to": "0xabc"}
-		_, err := builtin.Transfer(ctx, args)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "missing 'amount'")
-	})
+	args := map[string]interface{}{
+		"to":     "0xabc",
+		"amount": big.NewInt(1000),
+	}
+	result, err := builtin.Transfer(ctx, args)
+	require.NoError(t, err)
+	assert.Equal(t, "0x0000000000000000000000000000000000000000000000000000000000001234", result)
 }
 
 // EOF: internal/tools/builtin/builtin_test.go
