@@ -114,15 +114,39 @@ func TestBalance(t *testing.T) {
 }
 
 func TestTransfer(t *testing.T) {
-	// Placeholder test remains the same.
-	ctx := context.Background()
-	args := map[string]interface{}{
-		"to":     "0xabc",
-		"amount": big.NewInt(1000),
-	}
-	result, err := builtin.Transfer(ctx, args)
-	require.NoError(t, err)
-	assert.Equal(t, "0x0000000000000000000000000000000000000000000000000000000000001234", result)
+	t.Run("success", func(t *testing.T) {
+		ctx := context.Background()
+		chain := new(mockChain)
+		logger := &noopLogger{}
+
+		// Setup mock chain to expect SendTransaction.
+		to := "0x742d35Cc6634C0532925a3b844Bc9e90F1A6B1E7"
+		amount := big.NewInt(1000)
+		expectedTxHash := "0xabc123"
+
+		chain.On("SendTransaction", ctx, mock.MatchedBy(func(tx *blockchain.Transaction) bool {
+			return tx.To != nil && *tx.To == to && tx.Value.Cmp(amount) == 0
+		})).Return(expectedTxHash, nil)
+
+		sess := core.NewSession(logger, "", chain)
+		ctx = core.ContextWithSession(ctx, sess)
+
+		args := map[string]interface{}{
+			"to":     to,
+			"amount": amount,
+		}
+		result, err := builtin.Transfer(ctx, args)
+		require.NoError(t, err)
+
+		txHash, ok := result.(string)
+		assert.True(t, ok)
+		assert.Equal(t, expectedTxHash, txHash)
+
+		chain.AssertExpectations(t)
+	})
+
+	// ... error cases
 }
+
 
 // EOF: internal/tools/builtin/builtin_test.go

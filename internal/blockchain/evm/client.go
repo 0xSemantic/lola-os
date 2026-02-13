@@ -21,6 +21,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"crypto/ecdsa"
 
 	"github.com/0xSemantic/lola-os/internal/observe"
 )
@@ -84,14 +85,15 @@ func NewClient(ctx context.Context, rpcURL string, logger observe.Logger, retry 
 
 // NewClientFromEthClient creates a client from an existing ethclient.Client (for testing).
 func NewClientFromEthClient(ec *ethclient.Client, logger observe.Logger, retry *RetryConfig) *Client {
-    if retry == nil {
-        retry = &DefaultRetryConfig
-    }
-    return &Client{
-        ec:     ec,
-        logger: logger,
-        retry:  *retry,
-    }
+	if retry == nil {
+		retry = &DefaultRetryConfig
+	}
+	return &Client{
+		ec:     ec,
+		logger: logger,
+		rpcURL: "simulated", // not used
+		retry:  *retry,
+	}
 }
 
 // Close terminates the underlying RPC connection.

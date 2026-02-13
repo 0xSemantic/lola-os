@@ -22,11 +22,12 @@ import (
 type EVMGateway struct {
 	client *Client
 	logger observe.Logger
+	wallet blockchain.Wallet // added for write operations
 }
 
 // NewEVMGateway creates a new gateway for a specific RPC endpoint.
 // It establishes the connection immediately.
-func NewEVMGateway(ctx context.Context, rpcURL string, logger observe.Logger, retry *RetryConfig) (*EVMGateway, error) {
+func NewEVMGateway(ctx context.Context, rpcURL string, logger observe.Logger, retry *RetryConfig, wallet blockchain.Wallet) (*EVMGateway, error) {
 	client, err := NewClient(ctx, rpcURL, logger, retry)
 	if err != nil {
 		return nil, err
@@ -34,6 +35,7 @@ func NewEVMGateway(ctx context.Context, rpcURL string, logger observe.Logger, re
 	return &EVMGateway{
 		client: client,
 		logger: logger,
+		wallet: wallet,
 	}, nil
 }
 
@@ -152,6 +154,87 @@ func (g *EVMGateway) EstimateGas(ctx context.Context, call *blockchain.ContractC
 		return 0, fmt.Errorf("EstimateGas: %w", err)
 	}
 	return gas, nil
+}
+
+// SendTransaction implements blockchain.Chain.
+// It builds, signs, and broadcasts a transaction using the provided wallet.
+// If the gateway does not have a wallet, an error is returned.
+func (g *EVMGateway) SendTransaction(ctx context.Context, tx *blockchain.Transaction) (string, error) {
+	if g.wallet == nil {
+		return "", errors.New("SendTransaction: no wallet configured, read‑only mode")
+	}
+
+	builder, err := NewTxBuilder(ctx, g.client, g.wallet)
+	if err != nil {
+		return "", fmt.Errorf("SendTransaction: create tx builder: %w", err)
+	}
+
+	// Convert blockchain.Transaction to builder options.
+	opts := &TxOpts{
+		GasLimit:    tx.Gas,
+		GasPrice:    tx.GasPrice,
+		GasFeeCap:   tx.GasFeeCap,
+		GasTipCap:   tx.GasTipCap,
+		Nonce:       tx.Nonce,
+		DynamicFee:  tx.GasFeeCap != nil || tx.GasTipCap != nil,
+	}
+
+	var signedTx *types.Transaction
+	if tx.To == nil {
+		// Contract deployment.
+		signedTx, err = builder.BuildDeploy(ctx, tx.Data, opts)
+	} else {
+		// Transfer or contract call.
+		signedTx, err = builder.BuildContractCall(ctx, *tx.To, tx.Data, tx.Value, opts)
+	}
+	if err != nil {
+		return "", fmt.Errorf("SendTransaction: build tx: %w", err)
+	}
+
+	// Broadcast.
+	err = g.client.ec.SendTransaction(ctx, signedTx)
+	if err != nil {
+		return "", fmt.Errorf("SendTransaction: send: %w", err)
+	}
+
+	return signedTx.Hash().Hex(), nil
+}
+
+// DeployContract is a convenience method for contract deployment.
+// It is equivalent to SendTransaction with To = nil.
+func (g *EVMGateway) DeployContract(ctx context.Context, data []byte, opts *TxOpts) (string, common.Address, error) {
+	if g.wallet == nil {
+		return "", common.Address{}, errors.New("DeployContract: no wallet configured, read‑only mode")
+	}
+
+	builder, err := NewTxBuilder(ctx, g.client, g.wallet)
+	if err != nil {
+		return "", common.Address{}, fmt.Errorf("DeployContract: create tx builder: %w", err)
+	}
+
+	signedTx, err := builder.BuildDeploy(ctx, data, opts)
+	if err != nil {
+		return "", common.Address{}, fmt.Errorf("DeployContract: build tx: %w", err)
+	}
+
+	err = g.client.ec.SendTransaction(ctx, signedTx)
+	if err != nil {
+		return "", common.Address{}, fmt.Errorf("DeployContract: send: %w", err)
+	}
+
+	// Compute contract address from sender and nonce.
+	contractAddress := crypto.CreateAddress(builder.address, signedTx.Nonce())
+	return signedTx.Hash().Hex(), contractAddress, nil
+}
+
+// SetWallet assigns a wallet to the gateway, enabling write operations.
+func (g *EVMGateway) SetWallet(wallet blockchain.Wallet) {
+	g.wallet = wallet
+}
+
+// Wallet returns the currently configured wallet, or nil if none.
+func (g *EVMGateway) Wallet() blockchain.Wallet {
+	return g.wallet
 }
 
 // EOF: internal/blockchain/evm/gateway.go
