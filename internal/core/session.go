@@ -75,4 +75,6 @@ func ContextWithSession(ctx context.Context, sess *Session) context.Context {
 // sessionContextKey is an unexported type for context keys to avoid collisions.
 type sessionContextKey struct{}
 
+func (s *Session) GetID() string { return s.ID }
+
 // EOF: internal/core/session.go
